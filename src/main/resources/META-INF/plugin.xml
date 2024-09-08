@@ -1,0 +1,54 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+	<id>com.wangyuanye.plugin</id>
+	<name>Command Assist</name>
+	<vendor>JetBrains</vendor>
+
+	<depends>com.intellij.modules.platform</depends>
+
+	<resource-bundle>messages.messages</resource-bundle>
+
+	<actions>
+		<!-- 定义操作 -->
+
+		<action id="SaveAction"
+				class="com.wangyuanye.plugin.idea.action.SaveAction"
+				text="SaveMarker"
+				description="SaveAction">
+			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
+		</action>
+		<action id="LoadAction"
+				class="com.wangyuanye.plugin.idea.action.LoadAction"
+				text="LoadMarker"
+				description="LoadMarker">
+			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
+		</action>
+	</actions>
+
+	<extensions defaultExtensionNs="com.intellij">
+
+	<!--        插件配置页-->
+	<!--        <projectConfigurable instance="com.wangyuanye.plugin.setting.MyPluginConfigurable"-->
+	<!--                             displayName="My Plugin Settings"-->
+	<!--                             id = "com.wangyuanye.plugin" />-->
+	<!--插件入口程序-->
+	<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkThePoint"/>
+
+	<!--行尾拓展-->
+	<editor.linePainter implementation="com.wangyuanye.plugin.idea.ex.MyEditorLinePainter"/>
+
+	<!--通知-->
+	<notificationGroup displayType="BALLOON" id="CommandAssistNotificationGroup"/>
+
+
+	<editorFactoryListener implementation="com.wangyuanye.plugin.idea.listeners.BgColorRenderer" />
+
+	<documentationProvider implementation="com.wangyuanye.plugin.idea.ex.MyDocumentationProvider"/>
+	</extensions>
+		<applicationListeners>
+			<listener class="com.wangyuanye.plugin.idea.listeners.MyApplicationActivationListener"
+					  topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+
+		</applicationListeners>
+
+</idea-plugin>
