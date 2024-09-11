@@ -65,8 +65,13 @@ public class MyMarkerServiceImpl implements MyMarkerService {
 
     @Override
     public @Nullable MarkPointHead getMarkPointHead(@NotNull String filePath) {
-        //List<MarkPointLine> markPointLines = MyCache.get(filePath); // 第一版先不考虑缓存
-
+        List<MarkPointHead> markHeads = getMarkHeads();
+        if (markHeads.isEmpty()) return null;
+        for (MarkPointHead markHead : markHeads) {
+            if(filePath.equals(markHead.getClassPath())){
+                return markHead;
+            }
+        }
         return null;
     }
 
@@ -98,7 +103,17 @@ public class MyMarkerServiceImpl implements MyMarkerService {
     }
 
     @Override
-    public @NotNull MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
+    public @Nullable MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
+        List<MarkPointLine> markLines = getMarkLines(filePath);
+        for (MarkPointLine markLine : markLines) {
+            int startLine = markLine.getStartLine();
+            int endLine = markLine.getEndLine();
+            int startColumn = markLine.getStartColumn();
+            int endColumn = markLine.getEndColumn();
+            if(caretLine >= startLine && caretLine <= endLine && caretColumn >= startColumn && caretColumn <= endColumn) {
+                return markLine;
+            }
+        }
         return null;
     }
 

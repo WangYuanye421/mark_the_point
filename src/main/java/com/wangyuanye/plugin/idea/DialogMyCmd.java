@@ -6,7 +6,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
-import com.wangyuanye.plugin.util.MyUtils;
+import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -26,20 +26,21 @@ public class DialogMyCmd extends DialogWrapper {
     private final JLabel helpIcon;
     private Component parent;
 
+
     DialogMyCmd(Component parent, MarkPointLine pointLine, int cmdIndex, List<MarkPointLine> existingLineList) {
         super(parent, true);
         this.parent = parent;
         setSize(300, 120);
         myCmdIndex = cmdIndex;
         myExistingLineList = existingLineList;
-        setTitle(MyUtils.getMessage("cmd.dialog.add.title"));
+        setTitle(IdeaMessageUtil.getMessage("cmd.dialog.add.title"));
         setResizable(false);
         this.pointLine = pointLine;
         cmdField = new JBTextField(this.pointLine.getNote());
 
         remarkField = new JBTextField(this.pointLine.getNote());
         helpIcon = new JLabel(AllIcons.General.ContextHelp);
-        helpIcon.setToolTipText(MyUtils.getMessage("cmd.name_label_tip"));
+        helpIcon.setToolTipText(IdeaMessageUtil.getMessage("cmd.name_label_tip"));
         init();
     }
 
@@ -87,8 +88,8 @@ public class DialogMyCmd extends DialogWrapper {
         panel2.add(placeholder, BorderLayout.EAST);
 
         return FormBuilder.createFormBuilder()
-                .addLabeledComponent(MyUtils.getMessage("cmd.dialog.label_name"), panel1)
-                .addLabeledComponent(MyUtils.getMessage("cmd.dialog.label_remark"), panel2)
+                .addLabeledComponent(IdeaMessageUtil.getMessage("cmd.dialog.label_name"), panel1)
+                .addLabeledComponent(IdeaMessageUtil.getMessage("cmd.dialog.label_remark"), panel2)
                 .getPanel();
     }
 }

@@ -12,10 +12,7 @@ import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.wangyuanye.plugin.idea.HeadTab;
-import com.wangyuanye.plugin.idea.LineTab;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * 插件窗口
@@ -33,12 +30,10 @@ public final class PluginWindow implements Disposable {
         headTab = new HeadTab();
     }
 
-
     public void initToolWindow(@NotNull ToolWindow toolWindow, @NotNull Project project) {
         this.currentProject = project;
         JBTabs jbTabs = JBTabsFactory.createTabs(project);
-        TabInfo buildHeadTab = headTab.buildHeadTab(jbTabs);
-        //cmdTab.setTabColor(new JBColor(new Color(98, 163, 103), new Color(98, 163, 103)));
+        TabInfo buildHeadTab = headTab.buildHeadTab(jbTabs, currentProject);
         jbTabs.addTab(buildHeadTab);
 
 

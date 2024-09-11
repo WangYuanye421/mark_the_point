@@ -6,11 +6,11 @@
 
 	<depends>com.intellij.modules.platform</depends>
 
-	<resource-bundle>messages.messages</resource-bundle>
+	<resource-bundle>messages.messages</resource-bundle><!--国际化-->
+	<resource-bundle>config</resource-bundle><!--自定义配置数据-->
 
 	<actions>
 		<!-- 定义操作 -->
-
 		<action id="SaveAction"
 				class="com.wangyuanye.plugin.idea.action.SaveAction"
 				text="SaveMarker"
@@ -23,32 +23,35 @@
 				description="LoadMarker">
 			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
 		</action>
+		<action id="TestShowNoteInput" class="com.wangyuanye.plugin.idea.action.TestShowNoteInput"
+				text="TestShowNoteInput" description="TestShowNoteInput">
+			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
+		</action>
 	</actions>
 
 	<extensions defaultExtensionNs="com.intellij">
 
-	<!--        插件配置页-->
-	<!--        <projectConfigurable instance="com.wangyuanye.plugin.setting.MyPluginConfigurable"-->
-	<!--                             displayName="My Plugin Settings"-->
-	<!--                             id = "com.wangyuanye.plugin" />-->
-	<!--插件入口程序-->
-	<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkThePoint"/>
+		<!--        插件配置页-->
+		<!--        <projectConfigurable instance="com.wangyuanye.plugin.setting.MyPluginConfigurable"-->
+		<!--                             displayName="My Plugin Settings"-->
+		<!--                             id = "com.wangyuanye.plugin" />-->
+		<!--插件入口程序-->
+		<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkThePoint"/>
 
-	<!--行尾拓展-->
-	<editor.linePainter implementation="com.wangyuanye.plugin.idea.ex.MyEditorLinePainter"/>
-
-	<!--通知-->
-	<notificationGroup displayType="BALLOON" id="CommandAssistNotificationGroup"/>
+		<!--通知-->
+		<notificationGroup displayType="BALLOON" id="CommandAssistNotificationGroup"/>
 
 
-	<editorFactoryListener implementation="com.wangyuanye.plugin.idea.listeners.BgColorRenderer" />
+		<editorFactoryListener implementation="com.wangyuanye.plugin.idea.listeners.MarklineEditorRenderer" />
 
-	<documentationProvider implementation="com.wangyuanye.plugin.idea.ex.MyDocumentationProvider"/>
+<!--		<annotator  implementationClass="com.wangyuanye.plugin.idea.ex.MyAnnotationProvider"/>-->
 	</extensions>
-		<applicationListeners>
-			<listener class="com.wangyuanye.plugin.idea.listeners.MyApplicationActivationListener"
-					  topic="com.intellij.openapi.application.ApplicationActivationListener"/>
 
-		</applicationListeners>
+	<applicationListeners>
+		<listener class="com.wangyuanye.plugin.idea.listeners.MyApplicationActivationListener"
+				  topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+		<listener class="com.wangyuanye.plugin.idea.listeners.MyFileEditorListener"
+				  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener" />
+	</applicationListeners>
 
 </idea-plugin>

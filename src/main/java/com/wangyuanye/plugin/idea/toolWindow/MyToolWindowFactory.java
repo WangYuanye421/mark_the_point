@@ -7,9 +7,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.wangyuanye.plugin.util.IdeaApiUtil;
-import com.wangyuanye.plugin.util.UiUtil;
+import com.wangyuanye.plugin.util.IdeaBaseUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 
 /**
@@ -21,8 +22,9 @@ import org.jetbrains.annotations.NotNull;
  * todo 分享至github, star rank
  */
 public class MyToolWindowFactory implements ToolWindowFactory {
-    public static final String myToolWindowId = "MarkThePoint";
-    private static final Logger logger = Logger.getInstance(MyToolWindowFactory.class);
+    public static final String myToolWindowId = IdeaBaseUtil.getPluginConfig("my.tool.window.id");
+    public static final Color defaultNoteColor = Color.GREEN;;
+    private static final Logger logger = IdeaBaseUtil.getLogger(MyToolWindowFactory.class);
     private static PluginWindow pluginWindow;
 
     @Override
@@ -35,9 +37,5 @@ public class MyToolWindowFactory implements ToolWindowFactory {
         logger.debug("debug current project : " + project.getName());
         //执行插件
         pluginWindow.initToolWindow(toolWindow, project);
-        ToolWindow openTerminal = UiUtil.getOpenTerminal(IdeaApiUtil.getProject());
-        if (openTerminal != null) {
-            openTerminal.activate(null);
-        }
     }
 }

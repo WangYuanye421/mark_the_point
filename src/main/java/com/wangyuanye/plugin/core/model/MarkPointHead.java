@@ -1,13 +1,20 @@
 package com.wangyuanye.plugin.core.model;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
 /**
  * 标记
  *
  * @author wangyuanye
- * @date 2024/9/1
+ * @since 2024/9/1
  **/
+@Setter
+@Getter
+@Data
 public class MarkPointHead implements Serializable, Cloneable {
 
     private Long id = System.nanoTime();
@@ -40,35 +47,4 @@ public class MarkPointHead implements Serializable, Cloneable {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getShowName() {
-        return showName;
-    }
-
-    public void setShowName(String showName) {
-        this.showName = showName;
-    }
-
-    public String getClassPath() {
-        return classPath;
-    }
-
-    public void setClassPath(String classPath) {
-        this.classPath = classPath;
-    }
-
-    public String getLinesFileName() {
-        return linesFileName;
-    }
-
-    public void setLinesFileName(String linesFileName) {
-        this.linesFileName = linesFileName;
-    }
 }

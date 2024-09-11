@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
-import com.wangyuanye.plugin.util.MyUtils;
+import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,11 +22,11 @@ public class ActionCloseTab extends AnAction {
     private JBTabs jbTabs;
 
     public ActionCloseTab() {
-        super("Close Tab", MyUtils.getMessage("schema.tab.close"), AllIcons.Actions.Cancel);
+        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Cancel);
     }
 
     public ActionCloseTab(JBTabs jbTabs) {
-        super("Close Tab", MyUtils.getMessage("schema.tab.close"), AllIcons.Actions.Cancel);
+        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Cancel);
         this.jbTabs = jbTabs;
     }
 

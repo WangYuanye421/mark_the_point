@@ -56,7 +56,7 @@ public interface MyMarkerService {
      * @param caretColumn 光标列
      * @return markline
      */
-    @NotNull
+    @Nullable
     MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn);
 
     /**

@@ -2,7 +2,6 @@ package com.wangyuanye.plugin.idea;
 
 import com.intellij.util.ui.ItemRemovable;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
-import com.wangyuanye.plugin.util.MyUtils;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
@@ -13,9 +12,10 @@ import java.util.List;
  **/
 public class HeadModel extends AbstractTableModel implements ItemRemovable {
     private final String[] ourColumnNames = new String[]{
-            MyUtils.getMessage("schema.table.col_name"),
+            "源码文件",
+            "笔记数量"
     };
-    private final Class[] ourColumnClasses = new Class[]{String.class};
+    private final Class[] ourColumnClasses = new Class[]{String.class, String.class};
 
     private List<MarkPointHead> headList;
 
@@ -39,7 +39,7 @@ public class HeadModel extends AbstractTableModel implements ItemRemovable {
 
     @Override
     public int getColumnCount() {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -49,8 +49,17 @@ public class HeadModel extends AbstractTableModel implements ItemRemovable {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        //return columnIndex == 1;勾选框也禁用,避免频繁点击,省去"唯一默认"的界面校验
         return false;
+    }
+
+    /**
+     * 获取行对象
+     *
+     * @param rowIndex
+     * @return
+     */
+    public Object getRowData(int rowIndex) {
+        return headList.get(rowIndex);
     }
 
     @Override

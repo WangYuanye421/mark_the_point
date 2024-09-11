@@ -49,7 +49,10 @@ dependencies {
 
     }
     // 添加hutool
-    implementation("cn.hutool:hutool-all:5.7.13")
+    implementation("cn.hutool","hutool-all","5.7.13")
+
+    compileOnly("org.projectlombok", "lombok", "1.18.34")
+    annotationProcessor("org.projectlombok", "lombok", "1.18.34")
 
 }
 
@@ -141,8 +144,9 @@ tasks {
 }
 
 tasks.withType<Test> {
-    //useJUnitPlatform()
+    useJUnitPlatform()
     enabled = false
+    //jvmArgs("--add-exports", "java.desktop/sun.awt=ALL-UNNAMED")
 }
 
 

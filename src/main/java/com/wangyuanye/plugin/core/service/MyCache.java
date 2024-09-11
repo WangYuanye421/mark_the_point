@@ -5,6 +5,7 @@ import cn.hutool.cache.CacheUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
+import com.wangyuanye.plugin.util.IdeaBaseUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,15 +18,23 @@ import java.util.List;
  * @since v0.1
  **/
 public class MyCache implements MyMarkerService {
-    private static final Logger logger = Logger.getInstance(MyCache.class);
+    private static final Logger logger = IdeaBaseUtil.getLogger(MyCache.class);
     private final MyMarkerServiceImpl markerService;
+    public static final MyCache CACHE_INSTANCE = MyCacheFactory.getInstance();
     /**
      * 最近最久未使用
      */
     private static final Cache<String, List<MarkPointLine>> cache = CacheUtil.newLRUCache(32);
 
-    public MyCache(MyMarkerServiceImpl markerService) {
+    private MyCache(MyMarkerServiceImpl markerService) {
         this.markerService = markerService;
+    }
+
+    // Singleton
+    public static class MyCacheFactory {
+        public static MyCache getInstance() {
+            return new MyCache(MyMarkerServiceImpl.INSTANCE);
+        }
     }
 
 
@@ -51,7 +60,7 @@ public class MyCache implements MyMarkerService {
     }
 
     @Override
-    public @NotNull MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
+    public @Nullable MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
         return markerService.getMarkLine(filePath, caretLine, caretColumn);
     }
 
@@ -81,5 +90,11 @@ public class MyCache implements MyMarkerService {
 
     public static void remove(String key) {
         cache.remove(key);
+    }
+
+    public static void updateCache(String key){
+        if (cache.containsKey(key)) {
+            // todo 对于特定Key的全量更新
+        }
     }
 }

@@ -2,9 +2,9 @@ package com.wangyuanye.plugin.idea;
 
 import com.intellij.util.ui.ItemRemovable;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
-import com.wangyuanye.plugin.util.MyUtils;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -13,15 +13,16 @@ import java.util.List;
  **/
 public class LineModel extends AbstractTableModel implements ItemRemovable {
     private final String[] ourColumnNames = new String[]{
-            MyUtils.getMessage("cmd.table.col_name"),
-            MyUtils.getMessage("cmd.table.col_remark")
+            "高亮",
+            "行号"
     };
-    private final Class[] ourColumnClasses = new Class[]{String.class, String.class};
+    private final Class[] ourColumnClasses = new Class[]{String.class, Integer.class};
 
     private final List<MarkPointLine> lineList;
 
     LineModel(List<MarkPointLine> lineList) {
         this.lineList = lineList;
+        this.lineList.sort(Comparator.comparingInt(MarkPointLine::getStartLine));
     }
 
     @Override
@@ -52,20 +53,26 @@ public class LineModel extends AbstractTableModel implements ItemRemovable {
     @Override
     public Object getValueAt(int row, int column) {
         MarkPointLine line = lineList.get(row);
-        return switch (column) {
-            case 0 -> line.getMarkContent();
-            case 1 -> line.getNote();
-            default -> throw new IllegalArgumentException();
-        };
+        switch (column) {
+            case 0:
+                return line.getMarkContent();
+            case 1:
+                return line.getStartLine() + 1;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override
     public void setValueAt(Object value, int row, int column) {
         MarkPointLine line = lineList.get(row);
         switch (column) {
-            case 0 -> line.setMarkContent((String) value);
-            case 1 -> line.setNote((String) value);
-            default -> throw new IllegalArgumentException();
+            case 0:
+                line.setMarkContent((String) value);
+            case 1:
+                line.setStartLine((Integer) value);
+            default:
+                throw new IllegalArgumentException();
         }
     }
 

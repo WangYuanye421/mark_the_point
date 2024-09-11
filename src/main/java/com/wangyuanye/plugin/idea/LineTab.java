@@ -2,14 +2,19 @@ package com.wangyuanye.plugin.idea;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.*;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.AnActionButton;
+import com.intellij.ui.AnActionButtonRunnable;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
-import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
 import com.wangyuanye.plugin.core.service.MyMarkerServiceImpl;
-import com.wangyuanye.plugin.util.MyUtils;
+import com.wangyuanye.plugin.util.IdeaFileEditorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,36 +32,38 @@ import java.util.List;
  **/
 public final class LineTab implements Disposable {
     private static final Logger logger = Logger.getInstance(LineTab.class);
-    public static final String TAB_NAME = MyUtils.getMessage("cmd.tab.name");
-    private LineModel lineModel;
-    private List<MarkPointLine> lineList;
-    private JBTable lineTable;
+    public static final String TAB_NAME = "Note";
     // 加载数据
     private MyMarkerServiceImpl myMarkerServiceImpl;
-    private List<MarkPointHead> headList;
-
+    private MarkPointHead head;
+    private List<MarkPointLine> lineList;
+    private JBTable lineTable;
+    private LineModel lineModel;
+    private Project project;
+    private VirtualFile virtualFile;
 
     public LineTab() {
-        // 加载数据
-//        lineList = myMarkerService.list(defaultSchema.getId());
-//        lineModel = new LineModel(lineList);
-//        lineTable = new JBTable(lineModel);
-//        lineTable.setShowGrid(false);
-//        lineTable.setFocusable(false);
-//        lineTable.getTableHeader().setReorderingAllowed(false);// 禁止列拖动
-//        MyUtils.setEmptyText(lineTable);
+
     }
 
-    public void refreshTable(String schemaId) {
-       // lineList = myMarkerService.list(schemaId);
-        lineTable.removeAll();
+    public LineTab(@NotNull MarkPointHead head, @NotNull Project project, @NotNull VirtualFile virtualFile) {
+        this.head = head;
+        this.project = project;
+        this.virtualFile = virtualFile;
+
+        // 查询head下的所有笔记
+        myMarkerServiceImpl = MyMarkerServiceImpl.INSTANCE;
+        lineList = myMarkerServiceImpl.getMarkLines(head.getLinesFileName());
         lineModel = new LineModel(lineList);
-        lineTable.setModel(lineModel);
+        lineTable = new JBTable(lineModel);
+        lineTable.setColumnSelectionAllowed(false);
+        lineTable.getTableHeader().setReorderingAllowed(false);// 禁止列拖动
+        lineTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
-    public TabInfo buildCommandTab(JBTabs jbTabs, HeadTab headTab) {
-
-        // Column "name"
+    public TabInfo buildLineTab() {
+        // todo 构建markline表格
+        // Column "mark"
         TableColumn columnName = lineTable.getColumnModel().getColumn(0);
         columnName.setPreferredWidth(100);
         columnName.setMinWidth(100);
@@ -64,25 +71,26 @@ public final class LineTab implements Disposable {
 
         // Column "remark"
         TableColumn remark = lineTable.getColumnModel().getColumn(1);
-        remark.setPreferredWidth(100);
-        remark.setMinWidth(100);
+        remark.setPreferredWidth(60);
+        remark.setMinWidth(60);
+        remark.setMaxWidth(60);
 
         JPanel commandsPanel = new JPanel(new BorderLayout());
-        ActionRun actionRun = new ActionRun(lineTable);// 运行
+        //ActionRun actionRun = new ActionRun(lineTable);// 运行
         commandsPanel.add(ToolbarDecorator.createDecorator(lineTable)
-                .setAddAction(new AnActionButtonRunnable() {
-                    @Override
-                    public void run(AnActionButton button) {
-                        stopEditing();
-                        System.out.println("line add");
-                    }
-                })
-                .setEditAction(new AnActionButtonRunnable() {
-                    @Override
-                    public void run(AnActionButton button) {
-                        editSelectedCommand();
-                    }
-                })
+//                .setAddAction(new AnActionButtonRunnable() {
+//                    @Override
+//                    public void run(AnActionButton button) {
+//                        stopEditing();
+//                        System.out.println("line add");
+//                    }
+//                })
+//                .setEditAction(new AnActionButtonRunnable() {
+//                    @Override
+//                    public void run(AnActionButton button) {
+//
+//                    }
+//                })
                 .setRemoveAction(new AnActionButtonRunnable() {
                     @Override
                     public void run(AnActionButton button) {
@@ -90,25 +98,26 @@ public final class LineTab implements Disposable {
                         System.out.println("line remove");
                     }
                 })
-                .addExtraAction(actionRun)
+                //.addExtraAction(actionRun)
                 .disableUpDownActions().createPanel(), BorderLayout.CENTER);
 
-        // double-click in "Patterns" table should also start editing of selected pattern
+        // 双击
         new DoubleClickListener() {
             @Override
             protected boolean onDoubleClick(@NotNull MouseEvent e) {
-                editSelectedCommand();
+                int selectedIndex = lineTable.getSelectedRow();
+                if (selectedIndex < 0 || selectedIndex >= lineModel.getRowCount()) {
+                    return true;
+                }
+                MarkPointLine line = lineList.get(selectedIndex);
+                LogicalPosition position = new LogicalPosition(line.getStartLine(), line.getStartColumn(), line.isStartLeansForward());
+                IdeaFileEditorUtil.openAndNavigate(project, virtualFile, position);
                 return true;
             }
         }.installOn(lineTable);
         return new TabInfo(commandsPanel).setText(LineTab.TAB_NAME);
     }
 
-
-    private void editSelectedCommand() {
-        stopEditing();
-        System.out.println("line edit");
-    }
 
     protected void stopEditing() {
         if (lineTable.isEditing()) {

@@ -5,7 +5,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
-import com.wangyuanye.plugin.util.MyUtils;
+import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,7 +27,7 @@ public class DialogHead extends DialogWrapper {
         setSize(300, 120);
         mySchemaIndex = index;
         myExistingList = existingList;
-        setTitle(MyUtils.getMessage("schema.dialog.add.title"));
+        setTitle(IdeaMessageUtil.getMessage("schema.dialog.add.title"));
         setResizable(false);
         myMarkPointHead = markPointHead;
         nameField = new JBTextField(myMarkPointHead.getShowName());
@@ -57,7 +57,7 @@ public class DialogHead extends DialogWrapper {
     @Override
     protected JComponent createCenterPanel() {
         return FormBuilder.createFormBuilder()
-                .addLabeledComponent(MyUtils.getMessage("schema.dialog.label_name"), nameField)
+                .addLabeledComponent(IdeaMessageUtil.getMessage("schema.dialog.label_name"), nameField)
                 .getPanel();
     }
 }
