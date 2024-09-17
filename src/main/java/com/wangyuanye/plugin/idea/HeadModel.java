@@ -2,13 +2,14 @@ package com.wangyuanye.plugin.idea;
 
 import com.intellij.util.ui.ItemRemovable;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
+import lombok.Setter;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
 /**
  * @author wangyuanye
- * @date 2024/8/28
+ * @since v0.0.1
  **/
 public class HeadModel extends AbstractTableModel implements ItemRemovable {
     private final String[] ourColumnNames = new String[]{
@@ -17,13 +18,10 @@ public class HeadModel extends AbstractTableModel implements ItemRemovable {
     };
     private final Class[] ourColumnClasses = new Class[]{String.class, String.class};
 
+    @Setter
     private List<MarkPointHead> headList;
 
     HeadModel(List<MarkPointHead> headList) {
-        this.headList = headList;
-    }
-
-    public void setHeadList(List<MarkPointHead> headList) {
         this.headList = headList;
     }
 
@@ -55,8 +53,8 @@ public class HeadModel extends AbstractTableModel implements ItemRemovable {
     /**
      * 获取行对象
      *
-     * @param rowIndex
-     * @return
+     * @param rowIndex 行号
+     * @return 行对象
      */
     public Object getRowData(int rowIndex) {
         return headList.get(rowIndex);

@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 /**
  * @author wangyuanye
- * @date 2024/9/1
+ * @since 2024/9/1
  **/
 @Data
 public class MarkPointLine implements Serializable {

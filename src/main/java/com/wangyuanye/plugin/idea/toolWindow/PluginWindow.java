@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * 插件窗口
  *
  * @author wangyuanye
- * @date 2024/8/20
+ * @since 2024/8/20
  **/
 @Service
 public final class PluginWindow implements Disposable {

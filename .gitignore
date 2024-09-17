@@ -3,3 +3,7 @@
 .intellijPlatform
 .qodana
 build
+my_token.properties
+out
+.run
+.kotlin

@@ -20,7 +20,7 @@ import java.util.Optional;
 
 /**
  * @author wangyuanye
- * @date 2024/9/1
+ * @since 2024/9/1
  **/
 public class MyMarkerServiceImpl implements MyMarkerService {
     private static final Logger logger = Logger.getInstance(MyMarkerServiceImpl.class);
@@ -194,7 +194,7 @@ public class MyMarkerServiceImpl implements MyMarkerService {
         Optional<MarkPointHead> first = markHeads.stream().filter(e -> e.getClassPath().equals(classPath)).findFirst();
         if (first.isEmpty()) {
             MarkPointHead markPointHead = new MarkPointHead(classPath, classPath, filePath);
-            logger.info("add head : " + markPointHead.toString());
+            logger.info("add head : " + markPointHead);
             markHeads.add(markPointHead);
             updateHeadFile(markHeads);
         }

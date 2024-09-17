@@ -38,8 +38,8 @@ public class MyCustomElementRenderer implements EditorCustomElementRenderer {
         // 自定义图标和文本
         this.icon = getIconBasedOnTheme();
         String note = markPointLine.getNote();
-        if (note != null && note.length() > 15) {
-            this.text = note.substring(0, 15) + "....";
+        if (note != null && note.length() > 25) {
+            this.text = note.substring(0, 25) + "....";
         } else {
             this.text = note;
         }

@@ -35,7 +35,7 @@ public class RoundedBoxHighlighterRenderer implements CustomHighlighterRenderer 
             // 默认使用下划线
             underLine(editor, highlighter, (Graphics2D) g);
         } else {
-            Integer style = state.getMarkStyle();
+            int style = state.getMarkStyle();
             if (style == 0) {
                 border(editor, highlighter, (Graphics2D) g);
             } else if (style == 1) {

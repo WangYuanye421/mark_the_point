@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * @author wangyuanye
- * @date 2024/8/28
+ * @since 2024/8/28
  **/
 public class LineModel extends AbstractTableModel implements ItemRemovable {
     private final String[] ourColumnNames = new String[]{

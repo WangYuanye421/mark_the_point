@@ -33,6 +33,6 @@ public class MyProjectManagerListener implements ProjectManagerListener {
             }
         }
         myService.updateHeadFile(markHeads);
-        logger.info("[Mark Source Code] " + projectName +" 解锁文件成功");
+        logger.info("[Mark Source Code] " + projectName + " 解锁文件成功");
     }
 }

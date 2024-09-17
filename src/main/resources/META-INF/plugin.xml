@@ -1,8 +1,7 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-	<id>com.wangyuanye.plugin</id>
+	<id>com.wangyuanye.plugin.MSC</id>
 	<name>Mark Source Code</name>
-	<vendor>JetBrains</vendor>
+	<vendor>Yuanye.Wang</vendor>
 
 	<depends>com.intellij.modules.platform</depends>
 
@@ -13,7 +12,7 @@
 		<!-- 定义操作 -->
 		<action id="SaveAction"
 				class="com.wangyuanye.plugin.idea.action.SaveAction">
-			<keyboard-shortcut keymap="$default" first-keystroke="shift meta ENTER"/>
+			<keyboard-shortcut keymap="$default" first-keystroke="shift alt ENTER"/>
 			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
 		</action>
 	</actions>
@@ -23,7 +22,7 @@
 		<!--        插件配置页-->
 		<projectConfigurable instance="com.wangyuanye.plugin.idea.config.MyPluginConfigurable"
 							 displayName="Mark Source Code"
-							 id = "com.wangyuanye.plugin.mtp.config"
+							 id = "com.wangyuanye.plugin.msc.config"
 							 parentId="tools"
 		/>
 		<!--插件入口程序-->
@@ -41,5 +40,4 @@
 				  topic="com.intellij.openapi.project.ProjectManagerListener"
 		/>
 	</applicationListeners>
-
 </idea-plugin>

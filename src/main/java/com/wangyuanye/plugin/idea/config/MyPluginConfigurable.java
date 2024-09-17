@@ -29,7 +29,7 @@ public class MyPluginConfigurable implements SearchableConfigurable {
 
     @Override
     public @NotNull @NonNls String getId() {
-        return "com.wangyuanye.plugin.mtp.config";
+        return "com.wangyuanye.plugin.msc.config";
     }
 
     @Override
@@ -57,9 +57,7 @@ public class MyPluginConfigurable implements SearchableConfigurable {
             }
             // 获取风格配置
             Integer style = myConfig.getStyleConfig();
-            if (!style.equals(state.getMarkStyle())) {
-                return true;
-            }
+            return !style.equals(state.getMarkStyle());
         }
         return false;
     }

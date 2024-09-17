@@ -102,8 +102,6 @@ public class MyConfig {
         Color newColor = ColorPicker.showDialog(parent, "选择颜色", parent.getBackground(),
                 false, null, false);
         if (newColor != null) {
-            System.out.println("select color : " + newColor.toString());
-            String color2String = MyUtils.color2String(newColor);
             parent.setBackground(newColor);
         }
     }

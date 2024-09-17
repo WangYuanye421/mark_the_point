@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+	<rect x="95.784" y="171.009" width="310.855" height="100.376" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);"/>
+	<rect x="142.234" y="209.714" width="74.31" height="26.845" style="stroke: rgb(0, 0, 0); stroke-linecap: round; stroke-miterlimit: 2.75; stroke-dasharray: 2; fill: rgb(241, 122, 154);"/>
+	<text style="fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 28px; white-space: pre; pointer-events: none;"><tspan style="fill: rgb(242, 42, 42);" x="123.351" y="231.332">{ </tspan><tspan> </tspan><tspan style="stroke-linecap: round;">mark</tspan><tspan> source code  </tspan><tspan style="fill: rgb(242, 17, 17);">}</tspan></text>
+</svg>

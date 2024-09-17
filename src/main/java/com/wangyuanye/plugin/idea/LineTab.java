@@ -42,7 +42,7 @@ import static com.wangyuanye.plugin.idea.action.SaveAction.removeHighlighter;
  * 插件窗口
  *
  * @author wangyuanye
- * @date 2024/8/20
+ * @since 2024/8/20
  **/
 public final class LineTab implements Disposable {
     private static final Logger logger = Logger.getInstance(LineTab.class);
@@ -85,7 +85,6 @@ public final class LineTab implements Disposable {
         connect.subscribe(CustomMsgListener.TOPIC, new CustomMsgListener() {
             @Override
             public void onMessageReceived(MarkPointLine line) {
-                System.out.println("收到消息: " + line.toString());
                 refresh();
             }
         });
@@ -98,7 +97,6 @@ public final class LineTab implements Disposable {
     }
 
     public TabInfo buildLineTab(JBTabs jbTabs) {
-        // todo 构建markline表格
         // Column "mark"
         TableColumn columnName = lineTable.getColumnModel().getColumn(0);
         columnName.setPreferredWidth(100);

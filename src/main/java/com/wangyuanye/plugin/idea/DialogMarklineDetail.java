@@ -24,7 +24,7 @@ import java.util.List;
  * 详情配置窗口
  *
  * @author wangyuanye
- * @date 2024/8/28
+ * @since 2024/8/28
  **/
 public class DialogMarklineDetail extends DialogWrapper implements Disposable {
     private static final Logger log = LoggerFactory.getLogger(DialogMarklineDetail.class);
@@ -75,29 +75,6 @@ public class DialogMarklineDetail extends DialogWrapper implements Disposable {
 
     }
 
-    // 自定义按钮
-//    @Override
-//    protected Action @NotNull [] createActions() {
-//        // 获取默认的OK和Cancel按钮
-//        Action okAction = getOKAction();
-//        Action cancelAction = getCancelAction();
-//
-//        // 设置OK按钮的图标
-//        okAction.putValue(Action.SMALL_ICON, AllIcons.Actions.Commit);
-//        // 设置Cancel按钮的图标
-//        cancelAction.putValue(Action.SMALL_ICON, AllIcons.Actions.Cancel);
-////        JButton okButton = new JButton(okAction);
-////        JButton cancelButton = new JButton(cancelAction);
-////        // 设置按钮的首选大小
-////        Dimension buttonSize = new Dimension(50, 30); // 宽100，高50
-////        okButton.setPreferredSize(buttonSize);
-////        cancelButton.setPreferredSize(buttonSize);
-//
-//
-//        return new Action[]{okAction, cancelAction};
-//    }
-
-
     private JPanel createColorPanel(Component parent, Color color, boolean isDark) {
         JPanel panel = new JPanel();
         panel.setBackground(color);  // 初始颜色
@@ -121,7 +98,6 @@ public class DialogMarklineDetail extends DialogWrapper implements Disposable {
         // 使用已有的 ColorPicker，传入当前Dialog作为parent
         Color newColor = ColorPicker.showDialog(parent, "选择颜色", regularColor, false, null, false);
         if (newColor != null) {
-            System.out.println("select color : " + newColor.toString());
             String color2String = MyUtils.color2String(newColor);
             // 更新色块背景颜色
             if (isDark) {

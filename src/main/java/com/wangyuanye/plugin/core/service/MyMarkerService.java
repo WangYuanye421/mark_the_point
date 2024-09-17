@@ -1,18 +1,15 @@
 package com.wangyuanye.plugin.core.service;
 
-import cn.hutool.core.io.file.FileWriter;
-import cn.hutool.json.JSONUtil;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 
 /**
  * @author yuanye.wang
- * @since
+ * @since v0.0.1
  **/
 public interface MyMarkerService {
 
@@ -35,8 +32,9 @@ public interface MyMarkerService {
 
     /**
      * 锁定head
-     * @param id
-     * @param projectName
+     *
+     * @param id          headId
+     * @param projectName 项目名称
      */
     void lockMarkPointHead(@NotNull Long id, @NotNull String projectName);
 
@@ -91,7 +89,7 @@ public interface MyMarkerService {
      *
      * @param headList headList
      */
-    void updateHeadFile(List<MarkPointHead> headList) ;
+    void updateHeadFile(List<MarkPointHead> headList);
 
     /**
      * 保存line,覆盖原文件
@@ -99,5 +97,5 @@ public interface MyMarkerService {
      * @param filePath line路径
      * @param lineList data
      */
-    void updateLineFile(String filePath, List<MarkPointLine> lineList) ;
+    void updateLineFile(String filePath, List<MarkPointLine> lineList);
 }

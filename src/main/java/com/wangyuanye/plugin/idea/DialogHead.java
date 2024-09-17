@@ -11,7 +11,7 @@ import java.awt.*;
 
 /**
  * @author wangyuanye
- * @date 2024/8/28
+ * @since 2024/8/28
  **/
 public class DialogHead extends DialogWrapper {
     private final MarkPointHead myMarkPointHead;

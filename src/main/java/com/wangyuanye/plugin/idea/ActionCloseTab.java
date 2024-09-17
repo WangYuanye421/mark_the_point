@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * 关闭tab
  *
  * @author wangyuanye
- * @date 2024/8/29
+ * @since 2024/8/29
  **/
 public class ActionCloseTab extends AnAction {
     private JBTabs jbTabs;
@@ -28,7 +28,7 @@ public class ActionCloseTab extends AnAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
         TabInfo selectedTab = jbTabs.getSelectedInfo();
         if (selectedTab != null) {
             // 移除当前选中的 Tab

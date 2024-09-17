@@ -24,7 +24,6 @@ import com.wangyuanye.plugin.core.service.MyMarkerService;
 import com.wangyuanye.plugin.core.service.MyMarkerServiceImpl;
 import com.wangyuanye.plugin.idea.DialogMarklineDetail;
 import com.wangyuanye.plugin.idea.config.ConfigPersistent;
-import com.wangyuanye.plugin.idea.ex.MyCustomElementRenderer;
 import com.wangyuanye.plugin.idea.ex.RoundedBoxHighlighterRenderer;
 import com.wangyuanye.plugin.idea.listeners.CustomMsgListener;
 import com.wangyuanye.plugin.util.IdeaBaseUtil;
@@ -42,10 +41,11 @@ import static com.wangyuanye.plugin.util.MyUtils.string2Color;
  * 保存标记
  *
  * @author wangyuanye
- * @date 2024/9/1
+ * @since v0.0.1
  **/
 public class SaveAction extends AnAction implements Disposable {
     public static final int LAY_NUM = HighlighterLayer.SELECTION - 1;
+
     public SaveAction() {
         super(IdeaMessageUtil.getMessage("name.action"),
                 IdeaMessageUtil.getMessage("desc.action"),
@@ -66,7 +66,7 @@ public class SaveAction extends AnAction implements Disposable {
         if (virtualFile.isWritable()) return;
         String classPath = virtualFile.getPath();
         Pair<Boolean, String> hasLock = fileHasLock(anActionEvent.getProject(), classPath);
-        if(hasLock.first){
+        if (hasLock.first) {
             IdeaMessageUtil.myTipsI18n("tips.lock", hasLock.second);
             return;
         }
@@ -110,9 +110,10 @@ public class SaveAction extends AnAction implements Disposable {
 
     /**
      * 加锁文件, 在监听器中解锁
+     *
+     * @param project   项目
+     * @param classPath 文件全路径
      * @see com.wangyuanye.plugin.idea.listeners.MyProjectManagerListener
-     * @param project
-     * @param classPath
      */
     private void setFileLock(Project project, String classPath) {
         MyMarkerService myService = MyCache.CACHE_INSTANCE;
@@ -125,9 +126,9 @@ public class SaveAction extends AnAction implements Disposable {
     // 是否在别的项目中编辑
     private Pair<Boolean, String> fileHasLock(Project project, String classPath) {
         MarkPointHead head = MyCache.CACHE_INSTANCE.getMarkPointHead(classPath);
-        if(head != null) {
+        if (head != null) {
             String lockName = head.getLockName();
-            if(lockName != null && !lockName.isEmpty()) {
+            if (lockName != null && !lockName.isEmpty()) {
                 if (!lockName.equals(project.getName())) {
                     return new Pair<>(true, lockName);
                 }

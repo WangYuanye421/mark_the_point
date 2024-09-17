@@ -32,7 +32,7 @@ import static com.wangyuanye.plugin.util.IdeaBaseUtil.getLogger;
 
 /**
  * @author wangyuanye
- * @date 2024/8/28
+ * @since 2024/8/28
  **/
 public class HeadTab implements Disposable {
     private static final Logger logger = getLogger(HeadTab.class);
@@ -40,7 +40,6 @@ public class HeadTab implements Disposable {
     private final HeadModel headModel;
     private List<MarkPointHead> headList;
     private final JBTable headTable;
-    private Project project;
     // 加载数据
     private final MyMarkerService myMarkerService;
 
@@ -66,7 +65,6 @@ public class HeadTab implements Disposable {
         connect.subscribe(CustomMsgListener.TOPIC, new CustomMsgListener() {
             @Override
             public void onMessageReceived(MarkPointLine line) {
-                System.out.println("收到消息: " + line.toString());
                 refresh();
             }
         });
@@ -78,7 +76,6 @@ public class HeadTab implements Disposable {
     }
 
     public TabInfo buildHeadTab(JBTabs jbTabs, Project project) {
-        this.project = project;
         headList = new ArrayList<>(myMarkerService.getMarkHeads());
         headModel.setHeadList(headList);
 
@@ -87,7 +84,7 @@ public class HeadTab implements Disposable {
                 .setEditAction(new AnActionButtonRunnable() {
                     @Override
                     public void run(AnActionButton button) {
-                        editSelectedSchema();
+                        editSelectedSchema(jbTabs);
                     }
                 })
                 .setRemoveAction(new AnActionButtonRunnable() {
@@ -120,12 +117,25 @@ public class HeadTab implements Disposable {
                 int selectedRow = headTable.getSelectedRow();
                 HeadModel model = (HeadModel) headTable.getModel();
                 MarkPointHead selectHead = (MarkPointHead) model.getRowData(selectedRow);
+                String classPath = selectHead.getClassPath();
+                for (TabInfo tab : jbTabs.getTabs()) {
+                    Object object = tab.getObject();
+                    if(object != null) {
+                        String tabId = (String) object;
+                        if(classPath.equals(tabId)) {
+                            // 标签页已打开
+                            jbTabs.select(tab, true);// 激活当前tab
+                            return true;
+                        }
+                    }
+                }
                 // 打开源码文件
-                VirtualFile virtualFile = IdeaFileEditorUtil.openFileEditor(project, selectHead.getClassPath());
+                VirtualFile virtualFile = IdeaFileEditorUtil.openFileEditor(project, classPath);
                 // 创建新的tab
                 LineTab lineTab = new LineTab(selectHead, project, virtualFile);
                 TabInfo tab = lineTab.buildLineTab(jbTabs);
                 tab.setText(selectHead.getShowName());
+                tab.setObject(selectHead.getClassPath());// 设置tab标识
                 jbTabs.addTab(tab);
                 jbTabs.select(tab, true);// 激活当前tab
                 return true;
@@ -134,7 +144,7 @@ public class HeadTab implements Disposable {
         return new TabInfo(schemasPanel).setText(HeadTab.TAB_NAME);
     }
 
-    private void editSelectedSchema() {
+    private void editSelectedSchema(JBTabs jbTabs) {
         stopEditing();
         int selectedIndex = headTable.getSelectedRow();
         if (selectedIndex < 0 || selectedIndex >= headModel.getRowCount()) {
@@ -152,6 +162,22 @@ public class HeadTab implements Disposable {
         myMarkerService.updateMarkPointHead(editHead.getId(), editHead.getShowName());// db
         headModel.fireTableRowsUpdated(selectedIndex, selectedIndex);
         headTable.getSelectionModel().setSelectionInterval(selectedIndex, selectedIndex);
+        // 如果tab已打开,更新tab的名称
+        renameTab(jbTabs, editHead);
+    }
+
+    private void renameTab(JBTabs jbTabs, MarkPointHead editHead) {
+        String classPath = editHead.getClassPath();
+        for (TabInfo tab : jbTabs.getTabs()) {
+            Object object = tab.getObject();
+            if(object != null) {
+                String tabId = (String) object;
+                if(classPath.equals(tabId)) {
+                    // 标签页已打开
+                    tab.setText(editHead.getShowName());
+                }
+            }
+        }
     }
 
     protected void stopEditing() {

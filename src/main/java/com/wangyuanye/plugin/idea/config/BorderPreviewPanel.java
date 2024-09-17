@@ -8,7 +8,7 @@ import java.awt.*;
  * @since v1.0
  **/
 public class BorderPreviewPanel extends JPanel {
-    private JLabel label;
+    private final JLabel label;
 
     public BorderPreviewPanel(String text) {
         label = new JLabel(text);
