@@ -40,6 +40,18 @@ public class IdeaMessageUtil {
     }
 
     /**
+     * 发送提示信息
+     *
+     * @param i18nKey 国际化key
+     */
+    public static void myTipsI18n(String i18nKey, String msg) {
+        String tipTitle = IdeaBaseUtil.getPluginConfig("notice.content.title");
+        Notification notification = IdeaBaseUtil.getNotification();
+        notification.setContent(tipTitle + " " + getMessage(i18nKey) + msg);
+        notification.notify(IdeaBaseUtil.getCurProject());
+    }
+
+    /**
      * 获取国际化数据
      *
      * @param key key

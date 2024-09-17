@@ -94,5 +94,6 @@ public class IdeaBaseUtil {
      */
     public static @NotNull MessageBus getMessageBus() {
         return getCurProject().getMessageBus();
+
     }
 }

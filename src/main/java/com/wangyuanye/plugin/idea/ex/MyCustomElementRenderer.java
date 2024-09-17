@@ -1,15 +1,18 @@
 package com.wangyuanye.plugin.idea.ex;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.JBColor;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
+import com.wangyuanye.plugin.idea.config.ConfigPersistent;
 import com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory;
+import com.wangyuanye.plugin.util.MyUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +30,7 @@ public class MyCustomElementRenderer implements EditorCustomElementRenderer {
     private final MarkPointLine markPointLine;
     private final Icon icon;
     private final String text;
-    private final Color noteColor = MyToolWindowFactory.defaultNoteColor;
+    private final Color noteColor;
 
     // 构造函数传入图标和文本
     public MyCustomElementRenderer(MarkPointLine markPointLine) {
@@ -35,10 +38,19 @@ public class MyCustomElementRenderer implements EditorCustomElementRenderer {
         // 自定义图标和文本
         this.icon = getIconBasedOnTheme();
         String note = markPointLine.getNote();
-        if(note != null && note.length() > 15) {
+        if (note != null && note.length() > 15) {
             this.text = note.substring(0, 15) + "....";
         } else {
             this.text = note;
+        }
+        ConfigPersistent configPersistent = ApplicationManager.getApplication().getService(ConfigPersistent.class);
+        ConfigPersistent.MTPConfig state = configPersistent.getState();
+        if (state != null && state.getNoteDarkColor() != null) { // 只要进行了设置,dark和regular都会有值,不用两个同时判断
+            Color regular = MyUtils.string2Color(state.getNoteRegularColor());
+            Color dark = MyUtils.string2Color(state.getNoteDarkColor());
+            noteColor = new JBColor(regular, dark);
+        } else {
+            noteColor = MyToolWindowFactory.defaultNoteColor;
         }
     }
 
@@ -46,7 +58,10 @@ public class MyCustomElementRenderer implements EditorCustomElementRenderer {
     public int calcWidthInPixels(@NotNull Inlay inlay) {
         // 计算总宽度：图标宽度 + 字符串宽度
         FontMetrics fontMetrics = inlay.getEditor().getContentComponent().getFontMetrics(inlay.getEditor().getColorsScheme().getFont(EditorFontType.PLAIN));
-        int textWidth = fontMetrics.stringWidth(text);
+        int textWidth = 0;
+        if (text != null && !text.isEmpty()) {
+            textWidth = fontMetrics.stringWidth(text);
+        }
         return icon.getIconWidth() + textWidth + 5; // 5 是图标和文本之间的间距
     }
 

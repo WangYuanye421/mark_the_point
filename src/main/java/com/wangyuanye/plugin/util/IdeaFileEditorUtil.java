@@ -88,14 +88,14 @@ public class IdeaFileEditorUtil {
 
     /**
      * 创建inlay行尾元素
-     * @param editor editor
+     *
+     * @param editor        editor
      * @param markPointLine markPointLine
      * @return Inlay
      */
     public static Inlay<MyCustomElementRenderer> buildInlayElement(Editor editor, MarkPointLine markPointLine) {
         InlayModel inlayModel = editor.getInlayModel();
         int lineEndOffset = editor.getDocument().getLineEndOffset(markPointLine.getStartLine());
-        // 插入自定义内容（可以是文本、图标或其他组件）
         return inlayModel.addInlineElement(lineEndOffset, true, new MyCustomElementRenderer(markPointLine));
     }
 

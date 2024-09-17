@@ -11,6 +11,7 @@ import java.io.Serializable;
  **/
 @Data
 public class MarkPointLine implements Serializable {
+    private Long lineId;
     private String classPath; // 标记的类全路径
     private String markContent; // 标记的内容
     public int startLine;
@@ -62,5 +63,29 @@ public class MarkPointLine implements Serializable {
         this.endLine = end.line;
         this.endColumn = end.column;
         this.endLeansForward = end.leansForward;
+    }
+
+    public boolean isAdd() {
+        return lineId == null;
+    }
+
+    public void setBeginPosition(LogicalPosition begin) {
+        this.startLine = begin.line;
+        this.startColumn = begin.column;
+        this.startLeansForward = begin.leansForward;
+    }
+
+    public void setEndPosition(LogicalPosition end) {
+        this.endLine = end.line;
+        this.endColumn = end.column;
+        this.endLeansForward = end.leansForward;
+    }
+
+    public LogicalPosition getBeginPosition() {
+        return new LogicalPosition(startLine, startColumn, startLeansForward);
+    }
+
+    public LogicalPosition getEndPosition() {
+        return new LogicalPosition(endLine, endColumn, endLeansForward);
     }
 }

@@ -1,2 +1,2 @@
-rootProject.name = "Mark The Point"
+rootProject.name = "Mark Source Code"
 

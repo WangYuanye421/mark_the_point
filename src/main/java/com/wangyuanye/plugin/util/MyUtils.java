@@ -2,6 +2,9 @@ package com.wangyuanye.plugin.util;
 
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
+import com.wangyuanye.plugin.core.service.MyCache;
+import com.wangyuanye.plugin.core.service.MyMarkerService;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -14,8 +17,9 @@ import java.awt.*;
 public class MyUtils {
     public static Logger logger = new DefaultLogger("[MessagesUtil]");
 
-    private static final String BUNDLE_MSG_PATH = "messages/messages"; // 不带扩展名的基础名称
-    private static final String BUNDLE_DATA_PATH = "config_data";
+    public static @NotNull MyMarkerService getService() {
+        return MyCache.CACHE_INSTANCE;
+    }
 
     /**
      * 颜色转字符串

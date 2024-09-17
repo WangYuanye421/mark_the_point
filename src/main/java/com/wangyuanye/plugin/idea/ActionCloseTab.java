@@ -9,9 +9,6 @@ import com.intellij.ui.tabs.TabInfo;
 import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Optional;
-
 /**
  * 关闭tab
  *
@@ -22,19 +19,21 @@ public class ActionCloseTab extends AnAction {
     private JBTabs jbTabs;
 
     public ActionCloseTab() {
-        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Cancel);
+        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Rollback);
     }
 
     public ActionCloseTab(JBTabs jbTabs) {
-        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Cancel);
+        super("Close Tab", IdeaMessageUtil.getMessage("line.tab.close"), AllIcons.Actions.Rollback);
         this.jbTabs = jbTabs;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        List<TabInfo> tabs = jbTabs.getTabs();
-        Optional<TabInfo> first = tabs.stream().filter(t -> HeadTab.TAB_NAME.equals(t.getText())).findFirst();
-        first.ifPresent(tabInfo -> jbTabs.removeTab(tabInfo));
+        TabInfo selectedTab = jbTabs.getSelectedInfo();
+        if (selectedTab != null) {
+            // 移除当前选中的 Tab
+            jbTabs.removeTab(selectedTab);
+        }
 
     }
 

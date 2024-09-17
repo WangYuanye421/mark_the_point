@@ -1,6 +1,7 @@
 package com.wangyuanye.plugin;
 
 
+import com.intellij.openapi.application.PathManager;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import com.wangyuanye.plugin.util.MyUtils;

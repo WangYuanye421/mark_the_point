@@ -4,15 +4,18 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
-import com.wangyuanye.plugin.core.service.MyMarkerServiceImpl;
+import com.wangyuanye.plugin.core.model.MarkPointLine;
+import com.wangyuanye.plugin.core.service.MyCache;
+import com.wangyuanye.plugin.core.service.MyMarkerService;
+import com.wangyuanye.plugin.idea.listeners.CustomMsgListener;
+import com.wangyuanye.plugin.util.IdeaBaseUtil;
 import com.wangyuanye.plugin.util.IdeaFileEditorUtil;
 import com.wangyuanye.plugin.util.IdeaMessageUtil;
 import com.wangyuanye.plugin.util.IdeaWindowUtil;
@@ -20,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -40,12 +42,12 @@ public class HeadTab implements Disposable {
     private final JBTable headTable;
     private Project project;
     // 加载数据
-    private final MyMarkerServiceImpl myMarkerServiceImpl;
+    private final MyMarkerService myMarkerService;
 
     public HeadTab() {
         // 加载数据
-        myMarkerServiceImpl = MyMarkerServiceImpl.INSTANCE;
-        headList = new ArrayList<>(myMarkerServiceImpl.getMarkHeads());
+        myMarkerService = MyCache.CACHE_INSTANCE;
+        headList = new ArrayList<>(myMarkerService.getMarkHeads());
         headModel = new HeadModel(headList);
         headTable = new JBTable(headModel);
         headTable.setShowGrid(false);
@@ -54,18 +56,31 @@ public class HeadTab implements Disposable {
         headTable.getTableHeader().setReorderingAllowed(false);// 禁止列拖动
         headTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         IdeaWindowUtil.tableEmptyText(headTable);
-
+        onMessage();
     }
 
+    private void onMessage() {
+        // 监听消息
+        MessageBus messageBus = IdeaBaseUtil.getMessageBus();
+        MessageBusConnection connect = messageBus.connect();
+        connect.subscribe(CustomMsgListener.TOPIC, new CustomMsgListener() {
+            @Override
+            public void onMessageReceived(MarkPointLine line) {
+                System.out.println("收到消息: " + line.toString());
+                refresh();
+            }
+        });
+    }
+
+    private void refresh() {
+        headList = myMarkerService.getMarkHeads();
+        headModel.setHeadList(headList);
+    }
 
     public TabInfo buildHeadTab(JBTabs jbTabs, Project project) {
         this.project = project;
-        headList = new ArrayList<>(myMarkerServiceImpl.getMarkHeads());
+        headList = new ArrayList<>(myMarkerService.getMarkHeads());
         headModel.setHeadList(headList);
-        // Column "name"
-        TableColumn columnName = headTable.getColumnModel().getColumn(0);
-//        columnName.setPreferredWidth(100);
-//        columnName.setMinWidth(100);
 
         JPanel schemasPanel = new JPanel(new BorderLayout());
         schemasPanel.add(ToolbarDecorator.createDecorator(headTable)
@@ -79,11 +94,21 @@ public class HeadTab implements Disposable {
                     @Override
                     public void run(AnActionButton button) {
                         stopEditing();
-                        System.out.println("head remove, all sub line will remove");
+                        int selectedIndex = headTable.getSelectedRow();
+                        if (selectedIndex < 0 || selectedIndex >= headModel.getRowCount()) {
+                            return;
+                        }
+                        MarkPointHead sourceHead = headList.get(selectedIndex);
+                        List<MarkPointLine> lines = myMarkerService.getMarkLines(sourceHead.getClassPath());
+                        if (!lines.isEmpty()) {
+                            IdeaMessageUtil.myTipsI18n("tips.delete.head");
+                            return;
+                        }
+                        myMarkerService.removeMarkPointHead(sourceHead.getId());
+                        headList.remove(selectedIndex);
+                        TableUtil.removeSelectedItems(headTable);
                     }
                 })
-                .addExtraAction(new ActionOpenTab(jbTabs, headTable))
-                .addExtraAction(new ActionCloseTab(jbTabs))
                 .disableUpDownActions()
                 .createPanel(), BorderLayout.CENTER);
 
@@ -99,7 +124,8 @@ public class HeadTab implements Disposable {
                 VirtualFile virtualFile = IdeaFileEditorUtil.openFileEditor(project, selectHead.getClassPath());
                 // 创建新的tab
                 LineTab lineTab = new LineTab(selectHead, project, virtualFile);
-                TabInfo tab = lineTab.buildLineTab();
+                TabInfo tab = lineTab.buildLineTab(jbTabs);
+                tab.setText(selectHead.getShowName());
                 jbTabs.addTab(tab);
                 jbTabs.select(tab, true);// 激活当前tab
                 return true;
@@ -107,7 +133,6 @@ public class HeadTab implements Disposable {
         }.installOn(headTable);
         return new TabInfo(schemasPanel).setText(HeadTab.TAB_NAME);
     }
-
 
     private void editSelectedSchema() {
         stopEditing();
@@ -117,15 +142,14 @@ public class HeadTab implements Disposable {
         }
         MarkPointHead sourceHead = headList.get(selectedIndex);
         MarkPointHead editHead = sourceHead.clone();
-        DialogHead dialog = new DialogHead(headTable, editHead, selectedIndex, headList);
+        DialogHead dialog = new DialogHead(headTable, editHead);
         IdeaWindowUtil.setRelatedLocation(dialog);
-        dialog.setTitle(IdeaMessageUtil.getMessage("schema.dialog.edit.title"));
         if (!dialog.showAndGet()) {
             return;
         }
-        logger.info("schema edit. schema:" + editHead.toString());
+        logger.info("head edit. head:" + editHead.toString());
         headList.set(selectedIndex, editHead);
-        //schemaService.updateSchema(editHead);// db
+        myMarkerService.updateMarkPointHead(editHead.getId(), editHead.getShowName());// db
         headModel.fireTableRowsUpdated(selectedIndex, selectedIndex);
         headTable.getSelectionModel().setSelectionInterval(selectedIndex, selectedIndex);
     }

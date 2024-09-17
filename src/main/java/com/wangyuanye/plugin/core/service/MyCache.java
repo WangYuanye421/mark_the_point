@@ -50,33 +50,39 @@ public class MyCache implements MyMarkerService {
     }
 
     @Override
-    public void updateMarkPointHead(@NotNull String id, @NotNull String showName) {
+    public void lockMarkPointHead(@NotNull Long id, @NotNull String projectName) {
+        markerService.lockMarkPointHead(id, projectName);
+    }
+
+    @Override
+    public void updateMarkPointHead(@NotNull Long id, @NotNull String showName) {
         markerService.updateMarkPointHead(id, showName);
     }
 
     @Override
-    public @NotNull List<MarkPointLine> getMarkLines(@NotNull String filePath) {
-        return markerService.getMarkLines(filePath);
+    public void removeMarkPointHead(@NotNull Long id) {
+        markerService.removeMarkPointHead(id);
     }
 
     @Override
-    public @Nullable MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
-        return markerService.getMarkLine(filePath, caretLine, caretColumn);
+    public @NotNull List<MarkPointLine> getMarkLines(@NotNull String classPath) {
+        return markerService.getMarkLines(classPath);
     }
 
     @Override
-    public void addMarkLine(@NotNull MarkPointLine line) {
-        markerService.addMarkLine(line);
+    public @Nullable MarkPointLine getMarkLine(@NotNull String classPath, int lineNum) {
+        return markerService.getMarkLine(classPath, lineNum);
     }
 
     @Override
-    public void updateMarkLine(@NotNull MarkPointLine line) {
-        markerService.updateMarkLine(line);
+    public void saveMarkLine(@NotNull MarkPointLine line) {
+        markerService.saveMarkLine(line);
     }
 
+
     @Override
-    public void removeMarkLine(@NotNull String id) {
-        markerService.removeMarkLine(id);
+    public void removeMarkLine(@NotNull String classPath, @NotNull Long id) {
+        markerService.removeMarkLine(classPath, id);
     }
 
 
@@ -92,9 +98,19 @@ public class MyCache implements MyMarkerService {
         cache.remove(key);
     }
 
-    public static void updateCache(String key){
+    public static void updateCache(String key) {
         if (cache.containsKey(key)) {
             // todo 对于特定Key的全量更新
         }
+    }
+
+    @Override
+    public void updateHeadFile(List<MarkPointHead> headList) {
+        markerService.updateHeadFile(headList);
+    }
+
+    @Override
+    public void updateLineFile(String filePath, List<MarkPointLine> lineList) {
+        markerService.updateLineFile(filePath, lineList);
     }
 }

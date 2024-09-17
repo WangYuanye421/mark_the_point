@@ -25,6 +25,12 @@ public class LineModel extends AbstractTableModel implements ItemRemovable {
         this.lineList.sort(Comparator.comparingInt(MarkPointLine::getStartLine));
     }
 
+    public void setLineList(List<MarkPointLine> lineList) {
+        this.lineList.clear();
+        this.lineList.addAll(lineList);
+        this.lineList.sort(Comparator.comparingInt(MarkPointLine::getStartLine));
+    }
+
     @Override
     public String getColumnName(int column) {
         return ourColumnNames[column];

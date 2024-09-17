@@ -23,7 +23,8 @@ import java.awt.*;
  */
 public class MyToolWindowFactory implements ToolWindowFactory {
     public static final String myToolWindowId = IdeaBaseUtil.getPluginConfig("my.tool.window.id");
-    public static final Color defaultNoteColor = Color.GREEN;;
+    public static final Color defaultNoteColor = Color.PINK;
+    ;
     private static final Logger logger = IdeaBaseUtil.getLogger(MyToolWindowFactory.class);
     private static PluginWindow pluginWindow;
 

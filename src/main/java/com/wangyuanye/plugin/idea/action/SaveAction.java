@@ -5,24 +5,37 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.editor.markup.*;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.JBColor;
+import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
+import com.wangyuanye.plugin.core.service.MyCache;
+import com.wangyuanye.plugin.core.service.MyMarkerService;
 import com.wangyuanye.plugin.core.service.MyMarkerServiceImpl;
 import com.wangyuanye.plugin.idea.DialogMarklineDetail;
+import com.wangyuanye.plugin.idea.config.ConfigPersistent;
+import com.wangyuanye.plugin.idea.ex.MyCustomElementRenderer;
+import com.wangyuanye.plugin.idea.ex.RoundedBoxHighlighterRenderer;
+import com.wangyuanye.plugin.idea.listeners.CustomMsgListener;
+import com.wangyuanye.plugin.util.IdeaBaseUtil;
 import com.wangyuanye.plugin.util.IdeaFileEditorUtil;
+import com.wangyuanye.plugin.util.IdeaMessageUtil;
+import com.wangyuanye.plugin.util.MyUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+import static com.wangyuanye.plugin.idea.LineTab.removeInlayElement;
 import static com.wangyuanye.plugin.util.MyUtils.string2Color;
 
 /**
@@ -32,11 +45,17 @@ import static com.wangyuanye.plugin.util.MyUtils.string2Color;
  * @date 2024/9/1
  **/
 public class SaveAction extends AnAction implements Disposable {
-
+    public static final int LAY_NUM = HighlighterLayer.SELECTION - 1;
+    public SaveAction() {
+        super(IdeaMessageUtil.getMessage("name.action"),
+                IdeaMessageUtil.getMessage("desc.action"),
+                IconLoader.getIcon("/icons/note.svg", SaveAction.class));
+    }
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
-
+        ConfigPersistent configPersistent = ApplicationManager.getApplication().getService(ConfigPersistent.class);
+        ConfigPersistent.MTPConfig state = configPersistent.getState();
         Editor editor = anActionEvent.getData(CommonDataKeys.EDITOR);
         PsiFile psiFile = anActionEvent.getData(CommonDataKeys.PSI_FILE);
         if (editor == null || psiFile == null) {
@@ -45,69 +64,142 @@ public class SaveAction extends AnAction implements Disposable {
         // 获取当前类文件并判断
         VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile.isWritable()) return;
-
-        String fileName = virtualFile.getPath();
+        String classPath = virtualFile.getPath();
+        Pair<Boolean, String> hasLock = fileHasLock(anActionEvent.getProject(), classPath);
+        if(hasLock.first){
+            IdeaMessageUtil.myTipsI18n("tips.lock", hasLock.second);
+            return;
+        }
         // 获取选中模型
         SelectionModel selectionModel = editor.getSelectionModel();
+        String selectedText = selectionModel.getSelectedText();
+        if (selectedText == null || selectedText.isEmpty()) {
+            IdeaMessageUtil.myTips("未选中文本区域");
+            return;// 插件是以高亮为主体,并非note,所以没有选择文本进行高亮,则不执行
+        }
         int selectionStart = selectionModel.getSelectionStart();
         int selectionEnd = selectionModel.getSelectionEnd();
         // 转为逻辑位置
-        LogicalPosition logicalStartPosition = editor.offsetToLogicalPosition(selectionStart);
-        LogicalPosition logicalEndPosition = editor.offsetToLogicalPosition(selectionEnd);
-        // 回显标记内容
-        String markerContent = getMarkerPoint(editor, logicalStartPosition, logicalEndPosition);
-        MarkPointLine markPointLine = setMarklineDetail(editor, fileName, markerContent, logicalStartPosition, logicalEndPosition,
-                anActionEvent);
-        // 创建行尾元素
-        IdeaFileEditorUtil.buildInlayElement(editor, markPointLine);
-        editor.getSelectionModel();
+        LogicalPosition begin = editor.offsetToLogicalPosition(selectionStart);
+        LogicalPosition end = editor.offsetToLogicalPosition(selectionEnd);
+        // 不支持跨行
+        if (begin.line != end.line) {
+            IdeaMessageUtil.myTips("不支持跨行选择");
+            return;
+        }
+        // 标记内容
+        String markerContent = getHighLightText(editor, begin, end);
+        // 是否已存在标记,存在则认为是修改,否则是新增
+        MarkPointLine existLine = MyUtils.getService().getMarkLine(classPath, begin.line);
+        if (existLine == null) {
+            // add new line
+            MarkPointLine markPointLine = new MarkPointLine(classPath, markerContent, begin, end);
+            popupDialog(editor, markPointLine, null, null, anActionEvent);
+        } else {
+            // update line
+            LogicalPosition oldBegin = existLine.getBeginPosition();
+            LogicalPosition oldEnd = existLine.getEndPosition();
+            existLine.setBeginPosition(begin);
+            existLine.setEndPosition(end);
+            existLine.setMarkContent(markerContent);
+            popupDialog(editor, existLine, oldBegin, oldEnd, anActionEvent);
+        }
+        // 一旦进行了添加,则认为当前项目锁定了文件
+        setFileLock(anActionEvent.getProject(), classPath);
     }
 
+    /**
+     * 加锁文件, 在监听器中解锁
+     * @see com.wangyuanye.plugin.idea.listeners.MyProjectManagerListener
+     * @param project
+     * @param classPath
+     */
+    private void setFileLock(Project project, String classPath) {
+        MyMarkerService myService = MyCache.CACHE_INSTANCE;
+        MarkPointHead head = myService.getMarkPointHead(classPath);
+        if (head != null) {
+            myService.lockMarkPointHead(head.getId(), project.getName());
+        }
+    }
 
-
+    // 是否在别的项目中编辑
+    private Pair<Boolean, String> fileHasLock(Project project, String classPath) {
+        MarkPointHead head = MyCache.CACHE_INSTANCE.getMarkPointHead(classPath);
+        if(head != null) {
+            String lockName = head.getLockName();
+            if(lockName != null && !lockName.isEmpty()) {
+                if (!lockName.equals(project.getName())) {
+                    return new Pair<>(true, lockName);
+                }
+            }
+        }
+        return new Pair<>(false, null);
+    }
 
     // 详情设置
-    private MarkPointLine setMarklineDetail(Editor editor, String fileName, String markerContent, LogicalPosition begin,
-                                   LogicalPosition end, AnActionEvent event) {
-        // 构建对象
-        MarkPointLine markPointLine = new MarkPointLine(fileName, markerContent, begin, end);
-
+    private MarkPointLine popupDialog(Editor editor, MarkPointLine markPointLine, LogicalPosition oldBegin,
+                                      LogicalPosition oldEnd, AnActionEvent event) {
         DialogMarklineDetail marklineDetail = new DialogMarklineDetail(editor, markPointLine);
         if (marklineDetail.showAndGet()) {
-            // 将选中内容进行颜色标记
-            System.out.println("press ok btn");
-            System.out.println(markPointLine.toString());
             // 高亮色自定义
-            setMarkerPointBgColor(editor, begin, end,
+            processHighlighter(markPointLine.isAdd(), editor, markPointLine,
+                    oldBegin, oldEnd,
                     string2Color(markPointLine.getRegularColor()),
                     string2Color(markPointLine.getDarkColor()));
-
             // 保存标记
-            MyMarkerServiceImpl.INSTANCE.addMarkLine(markPointLine);
-            Messages.showMessageDialog(event.getProject(), markPointLine.toString(), "PSI Info", null);
-        } else {
-            System.out.println("quit the dialog");
+            MyMarkerServiceImpl.INSTANCE.saveMarkLine(markPointLine);
+            // 创建行尾元素
+            IdeaFileEditorUtil.buildInlayElement(editor, markPointLine);
+            // 发布消息
+            IdeaBaseUtil.getMessageBus()
+                    .syncPublisher(CustomMsgListener.TOPIC)
+                    .onMessageReceived(markPointLine);
         }
         return markPointLine;
     }
 
-    private void setMarkerPointBgColor(Editor editor, LogicalPosition start, LogicalPosition end, Color regular, Color dark) {
-        int startOffset = editor.logicalPositionToOffset(start);
-        int endOffset = editor.logicalPositionToOffset(end);
+    // 处理高亮
+    private void processHighlighter(boolean isAdd, Editor editor, MarkPointLine markPointLine,
+                                    LogicalPosition oldBegin, LogicalPosition oldEnd,
+                                    Color regular, Color dark) {
+        int startOffset = editor.logicalPositionToOffset(markPointLine.getBeginPosition());
+        int endOffset = editor.logicalPositionToOffset(markPointLine.getEndPosition());
         TextAttributes textAttributes = new TextAttributes();
-        textAttributes.setBackgroundColor(new JBColor(regular, dark)); // 设置背景色为黄色
 
         MarkupModel markupModel = editor.getMarkupModel();
-        RangeHighlighter highlighter = markupModel.addRangeHighlighter(
+
+        if (!isAdd) {
+            // 移除已存在的,修改场景
+            removeHighlighter(editor, oldBegin, oldEnd, markupModel, LAY_NUM);
+            // 移除inlay
+            removeInlayElement(editor, markPointLine);
+        }
+        markupModel.addRangeHighlighter(
                 startOffset,
                 endOffset,
-                HighlighterLayer.SELECTION - 1,
+                LAY_NUM,
                 textAttributes,
                 HighlighterTargetArea.EXACT_RANGE
-        );
+        ).setCustomRenderer(new RoundedBoxHighlighterRenderer(regular, dark));
     }
 
-    private String getMarkerPoint(Editor editor, LogicalPosition start, LogicalPosition end) {
+    public static void removeHighlighter(Editor editor, LogicalPosition oldBegin, LogicalPosition oldEnd,
+                                         MarkupModel markupModel, int layNum) {
+        int oldBeginOffset = editor.logicalPositionToOffset(oldBegin);
+        int oldEndOffset = editor.logicalPositionToOffset(oldEnd);
+        @NotNull RangeHighlighter[] allHighlighters = markupModel.getAllHighlighters();
+        for (RangeHighlighter allHighlighter : allHighlighters) {
+            if (layNum == allHighlighter.getLayer()) {
+                if (allHighlighter.getStartOffset() == oldBeginOffset
+                        && allHighlighter.getEndOffset() == oldEndOffset) {
+                    markupModel.removeHighlighter(allHighlighter);
+                    break;
+                }
+            }
+        }
+    }
+
+    private String getHighLightText(Editor editor, LogicalPosition start, LogicalPosition end) {
         int startOffset = editor.logicalPositionToOffset(start);
         int endOffset = editor.logicalPositionToOffset(end);
         Document document = editor.getDocument();
@@ -144,5 +236,6 @@ public class SaveAction extends AnAction implements Disposable {
     public void dispose() {
         System.out.println("save action close...");
     }
+
 }
 

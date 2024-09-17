@@ -1,22 +1,12 @@
 package com.wangyuanye.plugin.idea.listeners;
 
 import cn.hutool.core.lang.Pair;
-import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.event.*;
-import com.intellij.openapi.editor.markup.HighlighterLayer;
-import com.intellij.openapi.editor.markup.HighlighterTargetArea;
-import com.intellij.openapi.editor.markup.MarkupModel;
-import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.LightweightHint;
-import com.intellij.ui.awt.RelativePoint;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
 import com.wangyuanye.plugin.core.service.MyCache;
@@ -24,15 +14,14 @@ import com.wangyuanye.plugin.core.service.MyMarkerService;
 import com.wangyuanye.plugin.core.service.MyMarkerServiceImpl;
 import com.wangyuanye.plugin.idea.DialogMarklineDetail;
 import com.wangyuanye.plugin.idea.ex.MyCustomElementRenderer;
+import com.wangyuanye.plugin.idea.ex.RoundedBoxHighlighterRenderer;
 import com.wangyuanye.plugin.util.IdeaFileEditorUtil;
 import com.wangyuanye.plugin.util.MyUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory.defaultNoteColor;
 import static com.wangyuanye.plugin.util.MyUtils.string2Color;
 
 /**
@@ -47,29 +36,29 @@ public class MarklineEditorRenderer implements EditorFactoryListener {
 
     public MarklineEditorRenderer() {
         this.markerService = MyCache.CACHE_INSTANCE; // 缓存代理
-        mouseMotionListener = new EditorMouseMotionListener() {
-            @Override
-            public void mouseMoved(@NotNull EditorMouseEvent e) {
-                Editor editor = e.getEditor();
-                if (e.getInlay() != null && e.getInlay().getRenderer() instanceof MyCustomElementRenderer) {
-                    // 设置光标为手形
-                    editor.getContentComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                } else {
-                    // 当鼠标移出Inlay时，恢复为默认光标
-                    editor.getContentComponent().setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-                }
-            }
-        };
-        mouseListener = new EditorMouseListener() {
-            @Override
-            public void mouseClicked(@NotNull EditorMouseEvent e) {
-                if (e.getInlay() != null && e.getInlay().getRenderer() instanceof MyCustomElementRenderer myInlayRenderer) {
-                    MarkPointLine markPointLine = myInlayRenderer.getMarkPointLine();
-                    // 在这里实现按钮点击事件
-                    showDocumentationPopup(e.getEditor(), markPointLine);
-                }
-            }
-        };
+//        mouseMotionListener = new EditorMouseMotionListener() {
+//            @Override
+//            public void mouseMoved(@NotNull EditorMouseEvent e) {
+//                Editor editor = e.getEditor();
+//                if (e.getInlay() != null && e.getInlay().getRenderer() instanceof MyCustomElementRenderer) {
+//                    // 设置光标为手形
+//                    editor.getContentComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+//                } else {
+//                    // 当鼠标移出Inlay时，恢复为默认光标
+//                    editor.getContentComponent().setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+//                }
+//            }
+//        };
+//        mouseListener = new EditorMouseListener() {
+//            @Override
+//            public void mouseClicked(@NotNull EditorMouseEvent e) {
+//                if (e.getInlay() != null && e.getInlay().getRenderer() instanceof MyCustomElementRenderer myInlayRenderer) {
+//                    MarkPointLine markPointLine = myInlayRenderer.getMarkPointLine();
+//                    // 按钮点击事件
+//                    showDocumentationPopup(e.getEditor(), markPointLine);
+//                }
+//            }
+//        };
     }
 
     private void showDocumentationPopup(Editor editor, MarkPointLine markPointLine) {
@@ -84,12 +73,11 @@ public class MarklineEditorRenderer implements EditorFactoryListener {
                     string2Color(markPointLine.getDarkColor()));
 
             // 保存标记
-            //MyMarkerServiceImpl.INSTANCE.addMarkLine(markPointLine);
+            MyMarkerServiceImpl.INSTANCE.saveMarkLine(markPointLine);
         } else {
             System.out.println("quit the dialog");
         }
     }
-
 
     @Override
     public void editorCreated(@NotNull EditorFactoryEvent event) {
@@ -99,7 +87,7 @@ public class MarklineEditorRenderer implements EditorFactoryListener {
 
         renderBgColor(editor, virtualFile);
         // 鼠标监听
-        addMouseListener(editor, virtualFile);
+        //addMouseListener(editor, virtualFile);
     }
 
     private void addMouseListener(Editor editor, VirtualFile virtualFile) {
@@ -123,7 +111,7 @@ public class MarklineEditorRenderer implements EditorFactoryListener {
         Pair<Boolean, MarkPointHead> checked = checkMarkFile(virtualFile);
         if (!checked.getKey()) return;
         MarkPointHead markPointHead = checked.getValue();
-        List<MarkPointLine> markLines = markerService.getMarkLines(markPointHead.getLinesFileName());
+        List<MarkPointLine> markLines = markerService.getMarkLines(markPointHead.getClassPath());
         if (markLines.isEmpty()) {
             return;
         }
@@ -151,16 +139,23 @@ public class MarklineEditorRenderer implements EditorFactoryListener {
         int startOffset = editor.logicalPositionToOffset(start);
         int endOffset = editor.logicalPositionToOffset(end);
         TextAttributes attributes = new TextAttributes();
-        attributes.setBackgroundColor(new JBColor(color, darkColor)); // 设置背景色
-
         MarkupModel markupModel = editor.getMarkupModel();
+        // 移除已存在的
+        @NotNull RangeHighlighter[] allHighlighters = markupModel.getAllHighlighters();
+        for (RangeHighlighter allHighlighter : allHighlighters) {
+            if (allHighlighter.getStartOffset() == startOffset
+                    && allHighlighter.getEndOffset() == endOffset) {
+                markupModel.removeHighlighter(allHighlighter);
+                break;
+            }
+        }
         markupModel.addRangeHighlighter(
                 startOffset,
                 endOffset,
-                HighlighterLayer.SELECTION,
+                HighlighterLayer.SELECTION - 1,
                 attributes,
                 HighlighterTargetArea.EXACT_RANGE
-        );
+        ).setCustomRenderer(new RoundedBoxHighlighterRenderer(color, darkColor));
     }
 
     @Override

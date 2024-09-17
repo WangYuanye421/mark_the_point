@@ -13,7 +13,7 @@ import java.util.List;
 public class HeadModel extends AbstractTableModel implements ItemRemovable {
     private final String[] ourColumnNames = new String[]{
             "源码文件",
-            "笔记数量"
+            "备注"
     };
     private final Class[] ourColumnClasses = new Class[]{String.class, String.class};
 
@@ -65,13 +65,21 @@ public class HeadModel extends AbstractTableModel implements ItemRemovable {
     @Override
     public Object getValueAt(int row, int column) {
         MarkPointHead head = headList.get(row);
-        return head.getShowName();
+        return switch (column) {
+            case 0 -> head.getClassPath();
+            case 1 -> head.getShowName();
+            default -> new RuntimeException("错误的列: " + column);
+        };
     }
 
     @Override
     public void setValueAt(Object value, int row, int column) {
         MarkPointHead head = headList.get(row);
-        head.setShowName((String) value);
+        switch (column) {
+            case 0 -> head.setClassPath((String) value);
+            case 1 -> head.setShowName((String) value);
+            default -> throw new RuntimeException("错误的列: " + column);
+        }
     }
 
     @Override

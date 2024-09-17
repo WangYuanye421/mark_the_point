@@ -1,5 +1,9 @@
 # Changelog
 
+
 ## [Unreleased]
 
-[//]: # ([Unreleased]: https://github.com/JetBrains/intellij-platform-plugin-template/commits)
+## [0.0.1]
+### Added
+
+- Mark source code first version 第一版发布

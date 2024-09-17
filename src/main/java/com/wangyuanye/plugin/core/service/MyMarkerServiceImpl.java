@@ -5,6 +5,7 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.wangyuanye.plugin.core.model.MarkPointHead;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
@@ -23,12 +24,11 @@ import java.util.Optional;
  **/
 public class MyMarkerServiceImpl implements MyMarkerService {
     private static final Logger logger = Logger.getInstance(MyMarkerServiceImpl.class);
-    private static final String LOCATION = "/Users/mars/code/plugin/mark_the_point";
-    private static final String DIR = ".marker_data";
+    private static final String LOCATION = PathManager.getPluginsPath();
     /**
      * xxx/.marker_data
      */
-    private static final String PLUGIN_DIR = LOCATION + File.separator + DIR;
+    public static final String PLUGIN_DIR = LOCATION + File.separator + "mark_the_point";
     /**
      * xxx/.marker_data/head.json
      */
@@ -64,11 +64,11 @@ public class MyMarkerServiceImpl implements MyMarkerService {
 
 
     @Override
-    public @Nullable MarkPointHead getMarkPointHead(@NotNull String filePath) {
+    public @Nullable MarkPointHead getMarkPointHead(@NotNull String classPath) {
         List<MarkPointHead> markHeads = getMarkHeads();
         if (markHeads.isEmpty()) return null;
         for (MarkPointHead markHead : markHeads) {
-            if(filePath.equals(markHead.getClassPath())){
+            if (classPath.equals(markHead.getClassPath())) {
                 return markHead;
             }
         }
@@ -87,8 +87,9 @@ public class MyMarkerServiceImpl implements MyMarkerService {
     }
 
     @Override
-    public @NotNull List<MarkPointLine> getMarkLines(@NotNull String fileName) {
-        FileReader fileReader = new FileReader(new File(fileName));
+    public @NotNull List<MarkPointLine> getMarkLines(@NotNull String classPath) {
+        String filePath = checkBeforeSaveLine(classPath);
+        FileReader fileReader = new FileReader(new File(filePath));
         String fileString = fileReader.readString();
         if (fileString.isEmpty()) {
             return new ArrayList<>();
@@ -98,19 +99,41 @@ public class MyMarkerServiceImpl implements MyMarkerService {
     }
 
     @Override
-    public void updateMarkPointHead(@NotNull String id, @NotNull String showName) {
-
+    public void lockMarkPointHead(@NotNull Long id, @NotNull String projectName) {
+        List<MarkPointHead> markHeads = getMarkHeads();
+        if (!markHeads.isEmpty()) {
+            markHeads.stream().filter(e -> e.getId().equals(id)).findFirst().ifPresent(e -> {
+                e.setLockName(projectName);
+            });
+            updateHeadFile(markHeads);
+        }
     }
 
     @Override
-    public @Nullable MarkPointLine getMarkLine(@NotNull String filePath, int caretLine, int caretColumn) {
-        List<MarkPointLine> markLines = getMarkLines(filePath);
+    public void updateMarkPointHead(@NotNull Long id, @NotNull String showName) {
+        List<MarkPointHead> markHeads = getMarkHeads();
+        if (!markHeads.isEmpty()) {
+            markHeads.stream().filter(e -> e.getId().equals(id)).findFirst().ifPresent(e -> {
+                e.setShowName(showName);
+            });
+            updateHeadFile(markHeads);
+        }
+    }
+
+    @Override
+    public void removeMarkPointHead(@NotNull Long id) {
+        List<MarkPointHead> markHeads = getMarkHeads();
+        if (!markHeads.isEmpty()) {
+            markHeads.removeIf(markPointHead -> id.equals(markPointHead.getId()));
+            updateHeadFile(markHeads);
+        }
+    }
+
+    @Override
+    public @Nullable MarkPointLine getMarkLine(@NotNull String classPath, int lineNum) {
+        List<MarkPointLine> markLines = getMarkLines(classPath);
         for (MarkPointLine markLine : markLines) {
-            int startLine = markLine.getStartLine();
-            int endLine = markLine.getEndLine();
-            int startColumn = markLine.getStartColumn();
-            int endColumn = markLine.getEndColumn();
-            if(caretLine >= startLine && caretLine <= endLine && caretColumn >= startColumn && caretColumn <= endColumn) {
+            if (lineNum == markLine.getStartLine()) {
                 return markLine;
             }
         }
@@ -118,32 +141,45 @@ public class MyMarkerServiceImpl implements MyMarkerService {
     }
 
     @Override
-    public void addMarkLine(@NotNull MarkPointLine line) {
+    public void saveMarkLine(@NotNull MarkPointLine line) {
+        logger.info("save line : " + line);
         // 文件路径
         String lineFilePath = checkBeforeSaveLine(line.getClassPath());
+        logger.info("lineFilePath : " + lineFilePath);
         // 获取该文件所有marker
-        List<MarkPointLine> markLineList = getMarkLines(lineFilePath);
+        List<MarkPointLine> markLineList = getMarkLines(line.getClassPath());
         // 保存
+        if (!line.isAdd()) {
+            // 移除旧的
+            Optional<MarkPointLine> first = markLineList.stream().filter(e -> line.getLineId().equals(e.getLineId())).findFirst();
+            if (first.isPresent()) {
+                MarkPointLine exist = first.get();
+                markLineList.remove(exist);
+            }
+        } else {
+            line.setLineId(System.nanoTime());
+        }
         markLineList.add(line);
-        logger.info("add mark line : " + line.toString());
-        saveLine(lineFilePath, markLineList);
+        updateLineFile(lineFilePath, markLineList);
     }
 
     @Override
-    public void updateMarkLine(@NotNull MarkPointLine line) {
-
-    }
-
-    @Override
-    public void removeMarkLine(@NotNull String id) {
-
+    public void removeMarkLine(@NotNull String classPath, @NotNull Long id) {
+        String lineFilePath = checkBeforeSaveLine(classPath);
+        List<MarkPointLine> markLineList = getMarkLines(classPath);
+        Optional<MarkPointLine> first = markLineList.stream().filter(e -> id.equals(e.getLineId())).findFirst();
+        if (first.isPresent()) {
+            MarkPointLine exist = first.get();
+            markLineList.remove(exist);
+        }
+        updateLineFile(lineFilePath, markLineList);
     }
 
     /**
      * 校验
      *
      * @param classPath 标记文件的全路径
-     * @return markLine行数据文件path
+     * @return markLine文件路径
      */
     private String checkBeforeSaveLine(String classPath) {
         // 路径转名称
@@ -160,33 +196,32 @@ public class MyMarkerServiceImpl implements MyMarkerService {
             MarkPointHead markPointHead = new MarkPointHead(classPath, classPath, filePath);
             logger.info("add head : " + markPointHead.toString());
             markHeads.add(markPointHead);
-            saveHead(markHeads);
+            updateHeadFile(markHeads);
         }
         return filePath;
     }
 
     /**
-     * 保存head
+     * 保存head,覆盖原文件
      *
      * @param headList headList
      */
-    private void saveHead(List<MarkPointHead> headList) {
+    public void updateHeadFile(List<MarkPointHead> headList) {
         FileWriter fileWriter = new FileWriter(new File(MARK_HEAD_FILE));
         String jsonStr = JSONUtil.toJsonStr(headList);
         fileWriter.write(jsonStr);
     }
 
     /**
-     * 保存line
+     * 保存line,覆盖原文件
      *
      * @param filePath line路径
      * @param lineList data
      */
-    private void saveLine(String filePath, List<MarkPointLine> lineList) {
+    public void updateLineFile(String filePath, List<MarkPointLine> lineList) {
         FileWriter fileWriter = new FileWriter(new File(filePath));
         String jsonStr = JSONUtil.toJsonStr(lineList);
         fileWriter.write(jsonStr);
     }
-
 
 }

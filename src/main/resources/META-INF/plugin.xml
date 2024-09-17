@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
 	<id>com.wangyuanye.plugin</id>
-	<name>Command Assist</name>
+	<name>Mark Source Code</name>
 	<vendor>JetBrains</vendor>
 
 	<depends>com.intellij.modules.platform</depends>
@@ -12,19 +12,8 @@
 	<actions>
 		<!-- 定义操作 -->
 		<action id="SaveAction"
-				class="com.wangyuanye.plugin.idea.action.SaveAction"
-				text="SaveMarker"
-				description="SaveAction">
-			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
-		</action>
-		<action id="LoadAction"
-				class="com.wangyuanye.plugin.idea.action.LoadAction"
-				text="LoadMarker"
-				description="LoadMarker">
-			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
-		</action>
-		<action id="TestShowNoteInput" class="com.wangyuanye.plugin.idea.action.TestShowNoteInput"
-				text="TestShowNoteInput" description="TestShowNoteInput">
+				class="com.wangyuanye.plugin.idea.action.SaveAction">
+			<keyboard-shortcut keymap="$default" first-keystroke="shift meta ENTER"/>
 			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
 		</action>
 	</actions>
@@ -32,26 +21,25 @@
 	<extensions defaultExtensionNs="com.intellij">
 
 		<!--        插件配置页-->
-		<!--        <projectConfigurable instance="com.wangyuanye.plugin.setting.MyPluginConfigurable"-->
-		<!--                             displayName="My Plugin Settings"-->
-		<!--                             id = "com.wangyuanye.plugin" />-->
+		<projectConfigurable instance="com.wangyuanye.plugin.idea.config.MyPluginConfigurable"
+							 displayName="Mark Source Code"
+							 id = "com.wangyuanye.plugin.mtp.config"
+							 parentId="tools"
+		/>
 		<!--插件入口程序-->
-		<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkThePoint"/>
+		<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkSourceCode"/>
 
 		<!--通知-->
-		<notificationGroup displayType="BALLOON" id="CommandAssistNotificationGroup"/>
-
+		<notificationGroup displayType="BALLOON" id="MarkSourceCodeNotificationGroup"/>
 
 		<editorFactoryListener implementation="com.wangyuanye.plugin.idea.listeners.MarklineEditorRenderer" />
 
-<!--		<annotator  implementationClass="com.wangyuanye.plugin.idea.ex.MyAnnotationProvider"/>-->
 	</extensions>
 
 	<applicationListeners>
-		<listener class="com.wangyuanye.plugin.idea.listeners.MyApplicationActivationListener"
-				  topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-		<listener class="com.wangyuanye.plugin.idea.listeners.MyFileEditorListener"
-				  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener" />
+		<listener class="com.wangyuanye.plugin.idea.listeners.MyProjectManagerListener"
+				  topic="com.intellij.openapi.project.ProjectManagerListener"
+		/>
 	</applicationListeners>
 
 </idea-plugin>

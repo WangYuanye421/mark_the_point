@@ -1,16 +1,12 @@
 package com.wangyuanye.plugin.idea;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.event.EditorMouseEvent;
-import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.ColorPicker;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBTextArea;
 import com.wangyuanye.plugin.core.model.MarkPointLine;
 import com.wangyuanye.plugin.util.MyUtils;
@@ -20,7 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
@@ -38,23 +35,24 @@ public class DialogMarklineDetail extends DialogWrapper implements Disposable {
     private final JPanel darkColorPanel;
     private final Editor editor;
 
-    private final static Color defaultColor = new Color(255, 66, 169, 182);
+    private final static Color regularColor = new Color(255, 68, 133, 255);
+    private final static Color darkColor = Color.GREEN;
 
     public DialogMarklineDetail(Editor editor, MarkPointLine pointLine) {
         super(true);
         this.editor = editor;
         this.pointLine = pointLine;
         if (pointLine.getDarkColor() == null) {
-            pointLine.setDarkColor(MyUtils.color2String(defaultColor));
+            pointLine.setDarkColor(MyUtils.color2String(darkColor));
         }
         if (pointLine.getRegularColor() == null) {
-            pointLine.setRegularColor(MyUtils.color2String(defaultColor));
+            pointLine.setRegularColor(MyUtils.color2String(regularColor));
         }
         this.noteArea = new JBTextArea(this.pointLine.getNote());
         this.noteArea.setToolTipText("添加笔记");
         // 创建一个表示颜色的小面板
-        lightColorPanel = createColorPanel(getContentPanel(), false);
-        darkColorPanel = createColorPanel(getContentPanel(), true);
+        lightColorPanel = createColorPanel(getContentPanel(), regularColor, false);
+        darkColorPanel = createColorPanel(getContentPanel(), darkColor, true);
         init();
     }
 
@@ -100,14 +98,13 @@ public class DialogMarklineDetail extends DialogWrapper implements Disposable {
 //    }
 
 
-    private JPanel createColorPanel(Component parent, boolean isDark) {
+    private JPanel createColorPanel(Component parent, Color color, boolean isDark) {
         JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createLineBorder(JBColor.BLACK, 10));
-        panel.setBackground(defaultColor);  // 初始颜色
+        panel.setBackground(color);  // 初始颜色
         panel.setPreferredSize(new Dimension(18, 18)); // 设置色块大小
         panel.setMinimumSize(new Dimension(18, 18)); // 设置色块大小
         panel.setMaximumSize(new Dimension(18, 18));
-        panel.setBorder(BorderFactory.createLineBorder(defaultColor));
+        panel.setBorder(BorderFactory.createLineBorder(color));
 
         // 添加点击事件监听
         panel.addMouseListener(new MouseAdapter() {
@@ -122,7 +119,7 @@ public class DialogMarklineDetail extends DialogWrapper implements Disposable {
 
     private void openColorPicker(Component parent, boolean isDark) {
         // 使用已有的 ColorPicker，传入当前Dialog作为parent
-        Color newColor = ColorPicker.showDialog(parent, "选择颜色", defaultColor, false, null, false);
+        Color newColor = ColorPicker.showDialog(parent, "选择颜色", regularColor, false, null, false);
         if (newColor != null) {
             System.out.println("select color : " + newColor.toString());
             String color2String = MyUtils.color2String(newColor);
