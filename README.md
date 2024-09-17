@@ -1,7 +1,7 @@
 <div  align="center">
     <i>Add highlights and notes to your source code in IntelliJ IDEA</i>
     <div>
-    <img alt="Mark Source Code" src="src/main/resources/META-INF/logo.svg" title="logo" />
+    <img alt="Mark Source Code" style="width: 50%;height: 50%;" src="./pluginIcon.svg" title="logo" />
     </div>
 </div>
 

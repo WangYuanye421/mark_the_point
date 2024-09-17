@@ -120,9 +120,9 @@ public class HeadTab implements Disposable {
                 String classPath = selectHead.getClassPath();
                 for (TabInfo tab : jbTabs.getTabs()) {
                     Object object = tab.getObject();
-                    if(object != null) {
+                    if (object != null) {
                         String tabId = (String) object;
-                        if(classPath.equals(tabId)) {
+                        if (classPath.equals(tabId)) {
                             // 标签页已打开
                             jbTabs.select(tab, true);// 激活当前tab
                             return true;
@@ -170,9 +170,9 @@ public class HeadTab implements Disposable {
         String classPath = editHead.getClassPath();
         for (TabInfo tab : jbTabs.getTabs()) {
             Object object = tab.getObject();
-            if(object != null) {
+            if (object != null) {
                 String tabId = (String) object;
-                if(classPath.equals(tabId)) {
+                if (classPath.equals(tabId)) {
                     // 标签页已打开
                     tab.setText(editHead.getShowName());
                 }

@@ -26,7 +26,9 @@
 							 parentId="tools"
 		/>
 		<!--插件入口程序-->
-		<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="MarkSourceCode"/>
+		<toolWindow factoryClass="com.wangyuanye.plugin.idea.toolWindow.MyToolWindowFactory" id="Marker"
+			icon="/icons/highlight.svg"
+		/>
 
 		<!--通知-->
 		<notificationGroup displayType="BALLOON" id="MarkSourceCodeNotificationGroup"/>
