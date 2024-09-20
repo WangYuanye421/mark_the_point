@@ -1,4 +1,5 @@
 <div  align="center">
+    <i>一款辅助学习源码的IDEA插件，支持高亮标记和笔记</i><br>
     <i>Add highlights and notes to your source code in IntelliJ IDEA</i>
     <div>
     <img alt="Mark Source Code" style="width: 50%;height: 50%;" src="./pluginIcon.svg" title="logo" />
@@ -36,7 +37,7 @@
 > - 设置界面可定义高亮样式(框选,背景高亮,下划线)
 > - 设置界面可定义笔记颜色
 
-
+欢迎PR，有问题请提Issues
 <!-- Plugin description end -->
 
 
